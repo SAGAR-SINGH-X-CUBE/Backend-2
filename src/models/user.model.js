@@ -51,7 +51,7 @@ const userSchema = new Schema(
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next(); // i want when i m modiying password field then only to exceute the below code
 
-  this.password = bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 userSchema.methods.isPasswordCorrect = async function (password) {
