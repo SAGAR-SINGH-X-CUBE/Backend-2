@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const registerUser = asyncHandler(async (req, res) => {
   //******************************************************************************
@@ -42,7 +44,17 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const CoverImageLocalPath = req.files?.CoverImage[0]?.path;
+  // const CoverImageLocalPath = req.files?.coverImage[0]?.path;
+
+  let coverImageLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageLocalPath = req.files.coverImage[0].path;
+  }
+
   // check image, check avatar
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
@@ -51,7 +63,7 @@ const registerUser = asyncHandler(async (req, res) => {
   //upload them to cloudinary,avatar
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
-  const coverImage = await uploadOnCloudinary(CoverImageLocalPath);
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required");
@@ -59,10 +71,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // create user object-create  entry in db
 
-  const user = User.create({
+  const user = await User.create({
     fullName,
     email,
-    username: username.toLowerCase(),
+    userName: username.toLowerCase(),
     password,
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
